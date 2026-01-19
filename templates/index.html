@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fountain Controller</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Musical Fountain Controller</h1>
+            <p class="subtitle">VFD Pump Control with Audio Analysis</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-indicator" id="status-indicator">
+                <span class="dot"></span>
+                <span class="text">Offline</span>
+            </div>
+            <div class="current-values">
+                <span class="value-display">
+                    <label>Intensity</label>
+                    <span id="current-intensity">0%</span>
+                </span>
+                <span class="value-display">
+                    <label>RMS</label>
+                    <span id="current-rms">0.00</span>
+                </span>
+                <span class="value-display">
+                    <label>Bass</label>
+                    <span id="current-bass">0.00</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="control-sections">
+            <!-- VFD Control Section -->
+            <section class="control-section">
+                <h2>🔧 VFD Control</h2>
+                <div class="knob-group">
+                    <div class="knob-container">
+                        <div class="knob" data-param="min_frequency_percent" data-min="0" data-max="100" data-step="1">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                        </div>
+                        <div class="knob-label">Min Frequency</div>
+                        <div class="knob-value"><span id="val-min_frequency_percent">30</span>%</div>
+                    </div>
+
+                    <div class="knob-container">
+                        <div class="knob" data-param="max_frequency_percent" data-min="0" data-max="100" data-step="1">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                        </div>
+                        <div class="knob-label">Max Frequency</div>
+                        <div class="knob-value"><span id="val-max_frequency_percent">100</span>%</div>
+                    </div>
+
+                    <div class="knob-container">
+                        <div class="knob" data-param="smoothing_factor" data-min="0.05" data-max="0.5" data-step="0.01">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                        </div>
+                        <div class="knob-label">Smoothing</div>
+                        <div class="knob-value"><span id="val-smoothing_factor">0.20</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audio Analysis Section -->
+            <section class="control-section">
+                <h2>🎚️ Audio Analysis</h2>
+                <div class="knob-group">
+                    <div class="knob-container">
+                        <div class="knob" data-param="bass_low_freq" data-min="10" data-max="100" data-step="1">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                        </div>
+                        <div class="knob-label">Bass Low</div>
+                        <div class="knob-value"><span id="val-bass_low_freq">20</span> Hz</div>
+                    </div>
+
+                    <div class="knob-container">
+                        <div class="knob" data-param="bass_high_freq" data-min="100" data-max="500" data-step="5">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                        </div>
+                        <div class="knob-label">Bass High</div>
+                        <div class="knob-value"><span id="val-bass_high_freq">250</span> Hz</div>
+                    </div>
+
+                    <div class="knob-container">
+                        <div class="knob" data-param="update_rate" data-min="0.02" data-max="0.2" data-step="0.01">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                        </div>
+                        <div class="knob-label">Update Rate</div>
+                        <div class="knob-value"><span id="val-update_rate">0.05</span>s</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mix Controls Section -->
+            <section class="control-section highlight">
+                <h2>🎛️ Mix Controls</h2>
+                <div class="knob-group">
+                    <div class="knob-container large">
+                        <div class="knob knob-large" data-param="rms_weight" data-min="0" data-max="1" data-step="0.05">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                            <div class="knob-led-ring"></div>
+                        </div>
+                        <div class="knob-label">RMS Weight</div>
+                        <div class="knob-value"><span id="val-rms_weight">0.60</span></div>
+                        <div class="knob-hint">Volume following</div>
+                    </div>
+
+                    <div class="knob-container large">
+                        <div class="knob knob-large" data-param="bass_weight" data-min="0" data-max="1" data-step="0.05">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                            <div class="knob-led-ring"></div>
+                        </div>
+                        <div class="knob-label">Bass Weight</div>
+                        <div class="knob-value"><span id="val-bass_weight">0.40</span></div>
+                        <div class="knob-hint">Beat emphasis</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Settings Section -->
+            <section class="control-section">
+                <h2>⚙️ System Settings</h2>
+                <div class="knob-group">
+                    <div class="knob-container">
+                        <div class="knob" data-param="fountain_pin" data-min="1" data-max="27" data-step="1">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                        </div>
+                        <div class="knob-label">GPIO Pin</div>
+                        <div class="knob-value">GPIO <span id="val-fountain_pin">17</span></div>
+                    </div>
+
+                    <div class="knob-container">
+                        <div class="knob" data-param="debounce_time" data-min="0" data-max="10" data-step="0.5">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                        </div>
+                        <div class="knob-label">Debounce</div>
+                        <div class="knob-value"><span id="val-debounce_time">2</span>s</div>
+                    </div>
+
+                    <div class="knob-container">
+                        <div class="knob" data-param="chunk_size" data-min="512" data-max="4096" data-step="256">
+                            <div class="knob-inner">
+                                <div class="knob-grip"></div>
+                            </div>
+                            <div class="knob-scale"></div>
+                        </div>
+                        <div class="knob-label">FFT Size</div>
+                        <div class="knob-value"><span id="val-chunk_size">2048</span></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="button-bar">
+            <button class="btn btn-save" id="btn-save">
+                <span class="icon">💾</span> Save Settings
+            </button>
+            <button class="btn btn-reset" id="btn-reset">
+                <span class="icon">🔄</span> Reset to Defaults
+            </button>
+        </div>
+
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script src="/static/knob.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

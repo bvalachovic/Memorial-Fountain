@@ -1,0 +1,13 @@
+# Web Interface Dependencies
+flask>=2.0.0
+flask-cors>=3.0.0
+
+# Existing Fountain Controller Dependencies
+numpy>=1.19.0
+pyaudio>=0.2.11
+
+# Raspberry Pi specific (install separately on Pi)
+# RPi.GPIO
+# adafruit-circuitpython-mcp4725
+# board
+# busio
