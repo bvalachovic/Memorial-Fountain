@@ -15,6 +15,29 @@ import threading
 import numpy as np
 from pathlib import Path
 import sys
+import shutil
+import glob
+
+
+def _find_ffmpeg():
+    """Find ffmpeg executable, checking PATH and common Windows install locations"""
+    found = shutil.which('ffmpeg')
+    if found:
+        return found
+    if sys.platform == 'win32':
+        patterns = [
+            os.path.expandvars(r'%LOCALAPPDATA%\Microsoft\WinGet\Packages\*\ffmpeg*\bin\ffmpeg.exe'),
+            r'C:\ffmpeg\bin\ffmpeg.exe',
+            r'C:\ProgramData\chocolatey\bin\ffmpeg.exe',
+        ]
+        for pattern in patterns:
+            matches = glob.glob(pattern)
+            if matches:
+                return matches[0]
+    return 'ffmpeg'  # fallback, let it fail with a clear error
+
+
+FFMPEG_PATH = _find_ffmpeg()
 
 # Configuration
 MUSIC_DIR = "./test_music"  # Test music directory (current folder)
@@ -110,14 +133,33 @@ class AudioAnalyzer:
         """Start analyzing audio file"""
         self.is_analyzing = True
         
-        # Start audio playback (to speakers if available, muted if not)
-        self.playback_process = subprocess.Popen(
-            ['cvlc', '--play-and-exit', '--no-video', '--intf', 'dummy', 
-             '--quiet', audio_file],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-        
+        # Start audio playback (to speakers if available, skipped if not)
+        try:
+            if sys.platform == 'win32':
+                vlc_paths = [
+                    r'C:\Program Files\VideoLAN\VLC\vlc.exe',
+                    r'C:\Program Files (x86)\VideoLAN\VLC\vlc.exe',
+                ]
+                vlc_cmd = next((p for p in vlc_paths if os.path.exists(p)), None)
+                if vlc_cmd:
+                    self.playback_process = subprocess.Popen(
+                        [vlc_cmd, '--play-and-exit', '--no-video', '--intf', 'dummy',
+                         '--quiet', audio_file],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+                else:
+                    logging.warning("VLC not found - analysis only, no audio playback")
+            else:
+                self.playback_process = subprocess.Popen(
+                    ['cvlc', '--play-and-exit', '--no-video', '--intf', 'dummy',
+                     '--quiet', audio_file],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+        except FileNotFoundError:
+            logging.warning("VLC not found - analysis only, no audio playback")
+
         logging.info(f"♪ Playing: {os.path.basename(audio_file)}")
         
         # Start analysis thread
@@ -137,7 +179,7 @@ class AudioAnalyzer:
         pcm_file.close()
         
         cmd = [
-            'ffmpeg', '-y',
+            FFMPEG_PATH, '-y',
             '-i', audio_file,
             '-f', 's16le',
             '-acodec', 'pcm_s16le',
