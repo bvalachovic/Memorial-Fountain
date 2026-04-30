@@ -59,7 +59,7 @@ class VFDController:
     def __init__(self):
         try:
             i2c = busio.I2C(board.SCL, board.SDA)
-            self.dac = adafruit_mcp4725.MCP4725(i2c)
+            self.dac = adafruit_mcp4725.MCP4725(i2c, address=0x60)
             self.current_output = 0
             self.target_output = 0
             logging.info("VFD Controller initialized (MCP4725 DAC)")
