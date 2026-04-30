@@ -92,22 +92,33 @@ def reset_config():
         return jsonify({'status': 'success', 'config': DEFAULT_CONFIG})
     return jsonify({'status': 'error', 'message': 'Failed to reset config'}), 500
 
+STATUS_FILE = Path(__file__).parent / 'fountain_status.json'
+
 @app.route('/api/status', methods=['GET'])
 def get_status():
     """Get current fountain status"""
+    # Try the Pi controller first (production)
     try:
-        # Try to import the fountain controller for real status
         from fountain_rms_bass_web import get_controller
         controller = get_controller()
         return jsonify(controller.get_status())
     except ImportError:
-        # Running without hardware - return placeholder
-        return jsonify({
-            'is_playing': False,
-            'current_intensity': 0,
-            'current_rms': 0,
-            'current_bass': 0
-        })
+        pass
+
+    # Fall back to status file written by test_fountain_web.py
+    if STATUS_FILE.exists():
+        try:
+            with open(STATUS_FILE, 'r') as f:
+                return jsonify(json.load(f))
+        except Exception:
+            pass
+
+    return jsonify({
+        'is_playing': False,
+        'current_intensity': 0,
+        'current_rms': 0,
+        'current_bass': 0
+    })
 
 if __name__ == '__main__':
     # Create templates and static directories if they don't exist
@@ -116,4 +127,5 @@ if __name__ == '__main__':
 
     print("Starting Fountain Control Web Interface...")
     print("Open http://localhost:5000 in your browser")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True,
+            exclude_patterns=['*status*', '*config*'])

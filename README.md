@@ -1,4 +1,29 @@
-this setup is well-suited for that. A 16–18" copper garden fountain is actually a modest demand for the hardware your project specifies.
+Here are the three commands needed. All assume you're in the project directory.
+
+Install dependencies first (one time):
+
+
+python -m pip install flask flask-cors numpy
+Web Interface — config panel at http://localhost:5000
+
+
+python web_interface.py
+Test Mode — simulated VFD, no hardware needed, runs on Windows
+
+
+python test_fountain.py test_music/beethoven01.mp3
+Production — real hardware on the Raspberry Pi only
+
+
+python fountain_rms_bass.py
+Or with the web-configurable version:
+
+
+python fountain_rms_bass_web.py
+The production scripts (fountain_rms_bass.py / fountain_rms_bass_web.py) will fail on Windows because they import RPi.GPIO, board, and adafruit_mcp4725 — those only exist on the Pi. On Windows, stick with test_fountain.py for analysis testing and web_interface.py for tuning parameters.
+
+
+This setup is well-suited for a 16–18" copper garden fountain is actually a modest demand for the hardware your project specifies.
 
 Pump/VFD Sizing
 Your README.md:180-188 specifies a 1 HP VFD and motor — that's significantly oversized for an 18" fountain basin, which works in your favor:
@@ -26,6 +51,9 @@ The Raspberry Pi, DAC, and relay need to be in a weatherproof enclosure (IP65 ju
 The VFD also needs a weatherproof enclosure or to be mounted indoors/in a shed with conduit run to the pump
 Run the Bluetooth speaker wirelessly from the Pi — that part already works without extra wiring
 Use outdoor-rated cable for the pump motor wiring and the low-voltage DAC signal to the VFD
+
+
+
 Electrical:
 
 A 1/2 HP VFD on a standard 120V/15A household circuit is fine

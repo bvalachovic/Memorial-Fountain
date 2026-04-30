@@ -22,7 +22,7 @@ import struct
 
 # Configuration
 FOUNTAIN_PIN = 17  # GPIO pin connected to relay
-MUSIC_DIR = "/home/pi/music"  # Directory containing audio files
+MUSIC_DIR = "/home/bvalachovic/music"  # Directory containing audio files
 DEBOUNCE_TIME = 2  # Seconds before triggering
 
 # VFD Control Parameters
