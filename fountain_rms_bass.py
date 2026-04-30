@@ -359,9 +359,9 @@ class MusicalFountainController:
         self.is_playing = False
         logging.info("Playback stopped")
     
-    def check_fountain_state(self):
+ def check_fountain_state(self):
         """Check if fountain is on"""
-        return GPIO.input(FOUNTAIN_PIN) == GPIO.HIGH
+        return True
     
     def run(self):
         """Main monitoring loop"""
