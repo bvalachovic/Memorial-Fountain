@@ -55,7 +55,7 @@ logging.basicConfig(
 
 class VFDController:
     """Manages DAC output to control VFD"""
-    
+
     def __init__(self):
         try:
             i2c = busio.I2C(board.SCL, board.SDA)
@@ -66,6 +66,24 @@ class VFDController:
         except Exception as e:
             logging.error(f"Failed to initialize DAC: {e}")
             self.dac = None
+
+    def _write_dac(self, value):
+        """Write to DAC with retry on I2C errors (errno 5 / EIO)"""
+        if self.dac is None:
+            return
+        for attempt in range(3):
+            try:
+                self.dac.raw_value = int(value)
+                return
+            except OSError as e:
+                if attempt < 2:
+                    logging.warning(f"DAC write failed (attempt {attempt+1}/3): {e} — retrying")
+                    time.sleep(0.01)
+                else:
+                    logging.error(f"DAC write failed after 3 attempts: {e}")
+            except Exception as e:
+                logging.error(f"DAC write unexpected error: {e}")
+                return
     
     def set_intensity(self, percent):
         """
@@ -89,17 +107,17 @@ class VFDController:
         """Smooth transitions to prevent jerky pump movement"""
         if self.dac is None:
             return
-            
+
         if self.current_output != self.target_output:
             # Exponential smoothing
             diff = self.target_output - self.current_output
             self.current_output += diff * SMOOTHING_FACTOR
-            
+
             # Close enough? Snap to target
             if abs(self.target_output - self.current_output) < 5:
                 self.current_output = self.target_output
-            
-            self.dac.raw_value = int(self.current_output)
+
+            self._write_dac(self.current_output)
     
     def ramp_to_zero(self):
         """Safely ramp down to zero"""
@@ -108,9 +126,8 @@ class VFDController:
             freq_range = MAX_FREQUENCY_PERCENT - MIN_FREQUENCY_PERCENT
             actual_percent = MIN_FREQUENCY_PERCENT + (i / 100.0 * freq_range)
             value = int((actual_percent / 100.0) * 4095)
-            
-            if self.dac:
-                self.dac.raw_value = value
+
+            self._write_dac(value)
             time.sleep(0.1)
         
         self.current_output = 0
