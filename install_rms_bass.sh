@@ -59,70 +59,37 @@ systemctl start bluetooth
 # Setup music directory
 echo ""
 echo "Step 6: Creating music directory..."
-mkdir -p /home/pi/music
-chown pi:pi /home/pi/music
+MUSIC_USER=${SUDO_USER:-pi}
+MUSIC_DIR="/home/${MUSIC_USER}/music"
+mkdir -p "$MUSIC_DIR"
+chown "${MUSIC_USER}:${MUSIC_USER}" "$MUSIC_DIR"
+echo "Music directory: $MUSIC_DIR"
 
-# Create README
-cat > /home/pi/music/README.txt << 'EOF'
-MUSIC FOLDER - RMS + BASS ANALYSIS
-===================================
-
-Drop your music files here!
-
-Supported formats:
-- MP3 (.mp3)
-- M4A (.m4a)
-- FLAC (.flac)
-- WAV (.wav)
-- OGG (.ogg)
-
-The system analyzes TWO parameters:
-
-1. RMS (Root Mean Square) - Overall volume/intensity
-   - Smooth, follows dynamics
-   - Quiet passages = gentle flow
-   - Loud passages = strong flow
-
-2. Bass Energy (FFT 20-250 Hz) - Beat emphasis
-   - Punchy, follows rhythm
-   - Strong bass = extra boost
-   - Kick drums and bass notes emphasized
-
-Combined: RMS (60%) + Bass (40%) = Total Pump Intensity
-
-Works best with:
-- Classical music with dynamics
-- Film scores
-- Jazz
-- Music with strong bass/rhythm
-
-To adjust weighting, edit:
-/home/pi/fountain_rms_bass.py
-Lines 24-25: RMS_WEIGHT and BASS_WEIGHT
-EOF
-
-chown pi:pi /home/pi/music/README.txt
-
-# Copy Python script
+# Copy scripts
 echo ""
-echo "Step 7: Installing Python script..."
-cp fountain_rms_bass.py /home/pi/fountain_rms_bass.py
-chmod +x /home/pi/fountain_rms_bass.py
-chown pi:pi /home/pi/fountain_rms_bass.py
+echo "Step 7: Installing scripts..."
+INSTALL_DIR="/home/${MUSIC_USER}/Memorial-Fountain"
+mkdir -p "${INSTALL_DIR}/drivers"
+cp fountain_controller.py "${INSTALL_DIR}/fountain_controller.py"
+cp drivers/l298n_driver.py "${INSTALL_DIR}/drivers/l298n_driver.py"
+cp drivers/vfd_driver.py "${INSTALL_DIR}/drivers/vfd_driver.py"
+cp drivers/__init__.py "${INSTALL_DIR}/drivers/__init__.py"
+cp fountain_config.json "${INSTALL_DIR}/fountain_config.json"
+chown -R "${MUSIC_USER}:${MUSIC_USER}" "$INSTALL_DIR"
 
 # Install systemd service
 echo ""
 echo "Step 8: Installing systemd service..."
-cat > /etc/systemd/system/fountain-vfd.service << 'EOF'
+cat > /etc/systemd/system/fountain-vfd.service << EOF
 [Unit]
-Description=VFD Musical Fountain Controller (RMS + Bass)
+Description=Memorial Fountain Controller
 After=network.target sound.target bluetooth.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi
-ExecStart=/usr/bin/python3 /home/pi/fountain_rms_bass.py
+User=${MUSIC_USER}
+WorkingDirectory=${INSTALL_DIR}
+ExecStart=/usr/bin/python3 ${INSTALL_DIR}/fountain_controller.py
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
@@ -182,27 +149,29 @@ echo ""
 echo "3. Set Bluetooth as default audio:"
 echo "   pactl set-default-sink [BLUETOOTH_SINK_NAME]"
 echo ""
-echo "4. Wire hardware:"
-echo "   - Relay: VCC→Pin2, GND→Pin6, SIG→Pin11"
-echo "   - DAC: VCC→Pin1, GND→Pin9, SDA→Pin3, SCL→Pin5"
-echo "   - DAC OUT → VFD Analog Input"
+echo "4. Set config to production mode:"
+echo "   nano ${INSTALL_DIR}/fountain_config.json"
+echo "   Set: \"driver\": \"vfd\"       (when VFD is installed)"
+echo "   Set: \"auto_start\": false    (wait for GPIO fountain trigger)"
 echo ""
 echo "5. Add music files:"
 echo "   Access: \\\\[PI_IP]\\FountainMusic"
-echo "   Drop MP3/FLAC files"
+echo "   Drop MP3/FLAC/WAV files into the share"
 echo ""
 echo "6. Start service:"
 echo "   sudo systemctl start fountain-vfd"
 echo ""
-echo "7. Check logs (you'll see RMS + Bass values):"
+echo "7. Check logs:"
 echo "   sudo journalctl -u fountain-vfd -f"
 echo ""
 echo "TUNING:"
-echo "  Edit /home/pi/fountain_rms_bass.py to adjust:"
-echo "  - RMS_WEIGHT (line 24): Currently 60%"
-echo "  - BASS_WEIGHT (line 25): Currently 40%"
-echo "  - BASS_LOW_FREQ/BASS_HIGH_FREQ (lines 21-22)"
-echo "  - SMOOTHING_FACTOR (line 14)"
+echo "  Edit ${INSTALL_DIR}/fountain_config.json to adjust:"
+echo "  - rms_weight (default 0.6 = 60%)"
+echo "  - bass_weight (default 0.4 = 40%)"
+echo "  - min/max_frequency_percent"
+echo "  - smoothing_factor"
 echo ""
 echo "  Then: sudo systemctl restart fountain-vfd"
+echo ""
+echo "See TEST_INSTRUCTIONS.md for prototype vs production details."
 echo ""

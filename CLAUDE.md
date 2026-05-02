@@ -65,25 +65,15 @@ experiment. Working on the wrong file is wasted effort.
 
 ---
 
-## Running on the Pi
+## How to run — quick reference
 
-```bash
-# Switch to L298N prototype mode (already default)
-# fountain_config.json: "driver": "l298n", "auto_start": true
+Full step-by-step instructions for all three scenarios are in `TEST_INSTRUCTIONS.md`.
 
-python3 fountain_controller.py
-
-# Switch to production VFD mode when hardware is ready
-# fountain_config.json: "driver": "vfd", "auto_start": false
-```
-
-## Running simulation on Windows/Mac (no hardware)
-
-```bash
-python test_fountain.py test_music/beethoven01.mp3
-# or
-python test_fountain.py --all
-```
+| Scenario | Command | Config |
+| --- | --- | --- |
+| Prototype test on Pi (manual) | `python3 fountain_controller.py` | `driver=l298n`, `auto_start=true` (defaults) |
+| PC simulation, no hardware | `python test_fountain.py --all` | N/A |
+| Production (auto at boot) | `sudo ./install_rms_bass.sh` then reboot | `driver=vfd`, `auto_start=false` |
 
 ---
 
