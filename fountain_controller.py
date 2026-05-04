@@ -41,11 +41,13 @@ DEFAULT_CONFIG = {
     'bass_weight': 0.4,
 }
 
+LOG_FILE = Path(__file__).parent / 'fountain.log'
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/var/log/fountain.log'),
+        logging.FileHandler(LOG_FILE),
         logging.StreamHandler()
     ]
 )
