@@ -5,6 +5,14 @@ using RMS volume and bass FFT to modulate pump speed in real time.
 
 ---
 
+## Remoting in to Raspberry Pi
+
+From a terminal:
+
+ssh username@raspberrypi.local
+
+---
+
 ## Project status
 
 **Currently in prototype stage.** The Pi controls an L298N H-bridge driving a small
